@@ -1,0 +1,174 @@
+---
+title: "Text Analytics"
+author: "Shubham Jadhav"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Data Initialization and Clean-up
+
+### Install "tm" package
+```{r install_tm}
+#install.packages("tm")
+```
+### Use Library "tm"
+```{r use_tm}
+library(tm)
+library(dplyr)
+```
+### Create VCorpus
+```{r vcorpus}
+pom <- VCorpus(DirSource("./Data", ignore.case = TRUE, mode = "text"))
+str(pom)
+```
+```{r print_corpus}
+pom
+```
+### Extract the text from the corpus 
+```{r extract_text}
+pomtext <- pom[[1]]
+pomtext
+```
+### See the content of the document
+```{r see_doc_content}
+pomtext[[1]][1:10]
+```
+### Identify chapters
+```{r get_chapters}
+pombook <- pomtext[[1]]
+chap_idx = c()
+for(i in 1:length(pombook)){
+  if(grepl("CHAPTER ", pombook[i])){
+    chap_idx <- append(chap_idx, i)
+    print(pombook[i])
+  }
+}
+```
+### Extract Chapters to variables
+```{r extract_chapters}
+lst_chap_idx <- tail(chap_idx,1)
+lst_book_idx <- length(pombook)
+
+pom_chapter <- character()
+
+for(i in seq(1, length(chap_idx))){
+  
+  from <- chap_idx[i]+1
+  
+  if(chap_idx[i] == lst_chap_idx){
+    to <- lst_book_idx-1
+  } else {
+    to <- chap_idx[i+1]-1
+  }
+  
+  assign(paste0("chapter_",i), pombook[from:to])
+
+}
+```
+```{r}
+head(chapter_1)
+```
+### Write Chapters to seperate files
+```{r}
+if (!dir.exists("./Data/chapters")){
+  dir.create("./Data/chapters")
+}else{
+  print("Chapters dir exists")
+}
+
+for(i in seq(1, length(chap_idx))){
+  ch <- get(eval(paste0("chapter_",i)))
+  file <- paste("./Data/chapters/chapter_",i,".txt")
+  
+  write.table(ch, file=file, sep="\t", row.names=FALSE, col.names=FALSE,quote=FALSE);
+}
+```
+### Get VCorpus from the chapters
+```{r vcorpus2}
+pom2 <- VCorpus(DirSource("./Data/chapters", ignore.case = TRUE, mode = "text"))
+str(pom2)
+```
+```{r print_corpus2}
+pom2
+```
+```{r}
+chap1 <- pom2[[1]][[1]]
+#sapply(strsplit(pom2[[1]][1], " "), function(x) x[which.max(nchar(x))])
+chap1[nchar(chap1) == max(nchar(chap1))]
+```
+```{r longest_words_sentences}
+
+for(ch in 1:length(chap_idx)){
+  curr_chapter <- get(eval(paste0("chapter_",ch)))
+  
+  len <- length(curr_chapter)
+  word_list <- character()
+  all_sentence <- character()
+  sentence_list <- character()
+  
+  for(i in 1:len){
+    words <- c(strsplit(curr_chapter[i], split=" ")[[1]])
+    word_list <- append(word_list, words)
+    all_sentence <- paste(all_sentence, curr_chapter[i])
+  }
+  
+  sentence_list <- c(strsplit(all_sentence, split="[.]")[[1]])
+  
+  word_len <- nchar(word_list)
+  word_df <- data.frame("word" = word_list, "word_len" = word_len)
+  word_df <- word_df %>% arrange(desc(word_len))
+  assign(paste0("df_lon_wrd_chap_",ch), word_df[1:10,])
+  
+  sen_len <- nchar(sentence_list)
+  sen_df <- data.frame("sentence" = sentence_list, "sentence_len" = sen_len)
+  sen_df <- sen_df %>% arrange(desc(sen_len))
+  assign(paste0("df_lon_sen_chap_",ch), sen_df[1:10,])
+
+  if(ch < 12){
+    print(paste("Longest words and sentences for chapter",ch))
+    print(get(eval(paste0("df_lon_wrd_chap_",ch))))
+    print(get(eval(paste0("df_lon_sen_chap_",ch))))
+  }
+}
+```
+
+
+## Document term matrix (DTM)
+```{r ch1dtm}
+chp1_dtm <- DocumentTermMatrix(pom[1])
+chp1_dtm
+```
+```{r}
+inspect(chp1_dtm)
+```
+```{r}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
