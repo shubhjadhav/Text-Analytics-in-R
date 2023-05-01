@@ -136,19 +136,65 @@ for(ch in 1:length(chap_idx)){
 }
 ```
 
-
-## Document term matrix (DTM)
+### Document term matrix (DTM)
 ```{r ch1dtm}
-chp1_dtm <- DocumentTermMatrix(pom[1])
-chp1_dtm
+pomdtm <- DocumentTermMatrix(pom2)
+pomdtm
 ```
 ```{r}
-inspect(chp1_dtm)
+inspect(pomdtm)
+```
+```{r}
+str(pomdtm)
+```
+### Term Document matrix
+```{r tdm}
+pomtdm <- TermDocumentMatrix(pom2)
+pomtdm
+```
+
+## Corpus Cleansing – Data Wrangling
+
+### Remove Punctuations
+```{r removepuncfunc}
+removePunc <- function(x) gsub("[^[:alpha:][:space:]]*","",x)
+removePunc
+```
+```{r}
+pomcl <- tm::tm_map(pom2, content_transformer(removePunc))
+pomcl
+```
+```{r}
+str(pomcl)
+```
+```{r}
+inspect(pomcl)
+```
+### To Lower case
+```{r lowercase}
+pomlow <- tm::tm_map(pomcl, content_transformer(tolower))
+pomlow
+```
+```{r}
+str(pomlow)
+```
+```{r}
+inspect(pomlow)
+```
+## Compute the Document Term Matric (DTM)
+```{r}
+pomdtm <- DocumentTermMatrix(pomlow)
+pomdtm
+```
+```{r}
+str(pomdtm)
+```
+```{r}
+inspect(pomdtm)
 ```
 ```{r}
 
 ```
-
 
 
 
