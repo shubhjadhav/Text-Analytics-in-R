@@ -95,11 +95,6 @@ str(pom2)
 ```{r print_corpus2}
 pom2
 ```
-```{r}
-chap1 <- pom2[[1]][[1]]
-#sapply(strsplit(pom2[[1]][1], " "), function(x) x[which.max(nchar(x))])
-chap1[nchar(chap1) == max(nchar(chap1))]
-```
 ```{r longest_words_sentences}
 
 for(ch in 1:length(chap_idx)){
@@ -181,7 +176,7 @@ str(pomlow)
 ```{r}
 inspect(pomlow)
 ```
-## Compute the Document Term Matric (DTM)
+### Compute the Document Term Matric (DTM)
 ```{r}
 pomdtm <- DocumentTermMatrix(pomlow)
 pomdtm
@@ -192,10 +187,95 @@ str(pomdtm)
 ```{r}
 inspect(pomdtm)
 ```
+### Remove Sparsity
 ```{r}
-
+sparse_low <- removeSparseTerms(pomtdm, 0.5)
+sparse_low
 ```
+### Remove Stop words
+```{r rmstopwords}
+myStopwords<- c(tm::stopwords("english"))
+myStopwords[1:20]
+```
+```{r}
+pomstop <- tm::tm_map(pomlow, tm::removeWords, myStopwords)
+pomstop
+```
+```{r}
+inspect(pomstop[[1]])
+```
+### Create TDM
+```{r wostopwrdtdm}
+pomstoptdm <- tm::TermDocumentMatrix(pomstop)
+pomstoptdm
+```
+### Find Frequency of words
+```{r freq5}
+freqterm5 <- tm::findFreqTerms(pomstoptdm, lowfreq = 5)
+freqterm5[1:20]
+```
+```{r freq10}
+freqterm10 <- tm::findFreqTerms(pomstoptdm, lowfreq = 10)
+freqterm10[1:20]
+```
+```{r freq20}
+freqterm20 <- tm::findFreqTerms(pomstoptdm, lowfreq = 20)
+freqterm20[1:20]
+```
+```{r freq50}
+freqterm50 <- tm::findFreqTerms(pomstoptdm, lowfreq = 50)
+freqterm50[1:20]
+```
+```{r freqwcnt}
+for(i in 1:11){
+  assign(paste0("pomtf_chap",i), tm::termFreq(pomstop[[i]]))
+  print(paste("For chapter",i))
+  print(get(eval(paste0("pomtf_chap",i)))[1:5])
+}
+```
+### Dendograms
+```{r dendograms}
+for(i in 1:11){
+  tdm <- tm::TermDocumentMatrix(pomstop[[i]])
+  df <- as.data.frame(tdm[[1]])
+  pomdist <- dist(df)
+  assign(paste0("pomdg_chap",i), hclust(pomdist, method = "ward.D2"))
+  
+  print(paste("For chapter",i))
+  print(str(get(eval(paste0("pomdg_chap",i)))))
+}
+```
+```{r}
+for(i in 1:11){
+  plot(get(eval(paste0("pomdg_chap",i))), main = paste0("Dendogram - Chapter ",i))
+}
+```
+### Word Cloud
+```{r wordcloud}
+#install.packages("wordcloud")
+library(wordcloud)
 
+words <- names(pomtf_chap1)
+words[1:50]
+```
+```{r}
+pal <- brewer.pal(9,"BuGn")
+for(i in 1:11){
+  print(paste("Wordcloud for chapter",i))
+  tf <- get(eval(paste0("pomtf_chap",i)))
+  words <- names(tf)
+  wordcloud(words, tf, colors = pal[-(1:4)], scale=c(4, .5))
+}
+```
+```{r}
+pal2 <- brewer.pal(8,"Spectral")
+for(i in 1:11){
+  print(paste("Wordcloud for chapter",i))
+  tf <- get(eval(paste0("pomtf_chap",i)))
+  words <- names(tf)
+  wordcloud(words, tf, colors = pal2, scale=c(4, .5))
+}
+```
 
 
 
