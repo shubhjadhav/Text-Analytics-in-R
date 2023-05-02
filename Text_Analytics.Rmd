@@ -82,7 +82,7 @@ if (!dir.exists("./Data/chapters")){
 
 for(i in seq(1, length(chap_idx))){
   ch <- get(eval(paste0("chapter_",i)))
-  file <- paste("./Data/chapters/chapter_",i,".txt")
+  file <- paste0("./Data/chapters/chapter_",i,".txt")
   
   write.table(ch, file=file, sep="\t", row.names=FALSE, col.names=FALSE,quote=FALSE);
 }
@@ -276,20 +276,145 @@ for(i in 1:11){
   wordcloud(words, tf, colors = pal2, scale=c(4, .5))
 }
 ```
+## Quanteda
+```{r}
+#install.packages("quanteda")
+library(quanteda)
+```
+```{r tokens}
+pomch1tokens <- quanteda::tokens(chapter_1)
+str(pomch1tokens)
+```
+```{r dfm}
+pomdfm <- quanteda::dfm(pomch1tokens)
+str(pomdfm)
+```
+```{r docfreq}
+pomdocfreq <- quanteda::docfreq(pomdfm)
+str(pomdocfreq)
+```
+```{r}
+pomdocfreq[1:30]
+```
+```{r weights}
+pomwgt <- quanteda::dfm_weight(pomdfm)
+str(pomwgt)
+```
+```{r}
+pomwgt
+```
+```{r tfidf}
+pomtfidf <- quanteda::dfm_tfidf(pomdfm, scheme_tf = "count", scheme_df = "inverse")
+str(pomtfidf)
+```
+## Syuzhet
+```{r}
+#install.packages("syuzhet")
+library(syuzhet)
+```
+### Read as Dataframe
+```{r todf}
+pomdf <- as.data.frame(chapter_1)
+pomdf
+```
+### Read as string
+```{r asstr}
+pomasstr <- get_text_as_string("Data/chapters/chapter_1.txt")
+pomasstr
+```
+### Get Sentences
+```{r getsen}
+pomsen <- get_sentences(pomasstr)
+pomsen[1:5]
+```
+```{r}
+str(pomsen)
+```
+### Get Sentiments
+```{r getsentisyu}
+pomsentisyu <- get_sentiment(pomsen, "syuzhet")
+pomsentisyu[1:10]
+```
+```{r getsentibing}
+pomsentibing <- get_sentiment(pomsen, "bing")
+pomsentibing[1:10]
+```
+### Sentiment Dictionary
+```{r sentidiict}
+pomsentidict <- get_sentiment_dictionary()
+pomsentidict
+```
+```{r sentidiictbing}
+pomsentidictbing <- get_sentiment_dictionary("bing")
+pomsentidictbing
+```
+```{r}
+sum(pomsentisyu)
+```
+```{r}
+sum(pomsentibing)
+```
+```{r}
+mean(pomsentisyu)
+```
+```{r}
+mean(pomsentibing)
+```
+### Plots
+```{r plotsenti}
+plot(
+  pomsentisyu, 
+  main = "Princess of Mars Plot Trajectory",
+  xlab = "Narrative",
+  ylab = "Emotional Valence"
+)
+```
 
 
 
 
+```{r plotsenti2}
+plot(
+  pomsentibing, 
+  main = "Princess of Mars Plot Trajectory: Bing",
+  xlab = "Narrative",
+  ylab = "Emotional Valence"
+)
+```
+
+
+
+### Get percentage Values
+```{r}
+pomsentipctval10 <- get_percentage_values(pomsentisyu, bins = 10)
+structure(pomsentipctval10)
+```
+```{r plotpct10}
+plot(
+  pomsentipctval10, 
+  main = "Princess of Mars Plot Trajectory Percentage Value 10 ins",
+  xlab = "Narrative",
+  ylab = "Emotional Valence",
+  col = "maroon"
+)
+```
 
 
 
 
-
-
-
-
-
-
+```{r}
+pomsentipctval20 <- get_percentage_values(pomsentisyu, bins = 20)
+structure(pomsentipctval20)
+```
+```{r plotpct20}
+plot(
+  pomsentipctval20, 
+  main = "Princess of Mars Plot Trajectory Percentage Value 20 ins",
+  xlab = "Narrative",
+  ylab = "Emotional Valence",
+  col = "maroon"
+)
+```
 
 
 
